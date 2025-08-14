@@ -1,0 +1,650 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GeoCanvas — A quick, simple tool for creating, and viewing spatial data.</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon.png">
+
+    <meta name="title" content="GeoCanvas — Create, View, and Convert Spatial Data Instantly">
+    <meta name="description"
+        content="GeoCanvas is a fast, simple, and free online tool to upload, view, and convert spatial data. Visualize and work with geospatial data instantly in your browser.">
+
+    <!-- Keywords -->
+    <meta name="keywords"
+        content="GeoCanvas, GIS viewer, GIS converter, GeoJSON viewer, Shapefile viewer, KML viewer, KMZ viewer, convert GIS data, online map viewer, spatial data tool, geospatial data converter, OpenLayers viewer">
+
+    <!-- Author -->
+    <meta name="author" content="GeoNexa">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <!-- <meta property="og:url" content="https://yourwebsite.com/"> -->
+    <meta property="og:title" content="GeoCanvas — Create, View, and Convert Spatial Data Instantly">
+    <meta property="og:description"
+        content="Upload, view, and convert spatial data formats like GeoJSON, Shapefile, KML, and KMZ in your browser. Fast, free, and easy to use.">
+    <!-- <meta property="og:image" content="https://yourwebsite.com/preview-image.png"> -->
+
+    <meta name="theme-color" content="#0d6efd">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v10.6.0/ol.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://viglino.github.io/font-gis/css/font-gis.css" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css">
+
+
+
+</head>
+
+<body>
+    <nav>
+        <h1>GeoCanvas</h1>
+        <div class="nav-buttons">
+            <!-- <button id="import">Import</button> -->
+    </nav>
+
+
+
+    <div class="dash_container">
+        <div class="loader_container" id="page_loader" style="display: none;">
+            <div class="loader"></div>
+
+        </div>
+
+
+
+
+
+        <div id="sidebar">
+            <button data-type="Point" title="Draw Point"> <i class="fg-poi"></i> </button>
+            <button data-type="LineString" title="Draw Line"> <i class="fg-polyline-pt"></i></button>
+            <button data-type="Polygon" title="Draw Polygon"> <i class="fg-polygon-pt"></i></button>
+            <button data-type="Circle" title="Draw Circle"> <i class="fg-circle-o"></i></button>
+            <button data-type="Box" title="Draw Rectangle"> <i class="fg-rectangle-pt"></i></button>
+            <button id="undo" title="Undo"> <i class="fa-solid fa-rotate-left"></i></button>
+            <button id="clear" title="Clear"> <i class="fa-solid fa-trash"></i></button>
+            <button id="import" title="Import GeoJSON"> <i class="fa-solid  fa-file-import"></i></button>
+            <!-- <input id="fileInput" type="file" accept="application/geo+json,application/json" style="display:none" /> -->
+            <input id="fileInput" type="file" accept=".geojson,.json,.kml,.kmz,.zip" style="display:none" />
+
+        </div>
+
+        <div id="map">
+            <div id="coordinates">
+            </div>
+
+            <div class="basemap-control">
+                <select id="basemapSelect">
+                    <option value="osm" selected>OpenStreetMap</option>
+                    <option value="street">Google Street Map</option>
+                    <option value="sentinel">Sentinel-2 Cloudless</option>
+                </select>
+            </div>
+
+            <div id="popup" class="ol-popup">
+                <!-- <a href="#" id="popup-closer" class="ol-popup-closer"></a> -->
+                <div class="popup-tabs">
+                    <button id="tab-properties" class="tab-btn active">Properties</button>
+                    <button id="tab-info" class="tab-btn">Info</button>
+                </div>
+                <div id="tab-content-properties" class="tab-content">
+                    <table id="attr-table" style="border-collapse:collapse;width:100%"></table>
+                    <a href="#" id="add-row" style="font-size:12px;color:#007bff">+ Add row</a>
+
+
+                </div>
+                <div id="tab-content-info" class="tab-content" style="display:none">
+                    <div id="info-content" style="font-size:13px;line-height:1.4"></div>
+                </div>
+
+                <div style="margin-top:8px;text-align:right">
+                    <button id="save-attr"
+                        style="padding:4px 8px;background:#007bff;color:white;border:none;border-radius:3px">Save</button>
+                    <button id="cancel-attr"
+                        style="padding:4px 8px;background:#ccc;border:none;border-radius:3px">Cancel</button>
+                    <button id="delete-feature"
+                        style="padding:4px 8px;background:#dc3545;color:white;border:none;border-radius:3px">Delete
+                        feature</button>
+                </div>
+
+            </div>
+
+
+
+
+
+        </div>
+
+
+
+        <div id="panel">
+            <div class="panel-buttons">
+                <button id="copy-json">Copy</button>
+                <button id="download-json">Download</button>
+                <button id="refresh-extent">New</button>
+            </div>
+            <div id="geojson-output">Draw something to see GeoJSON...</div>
+
+        </div>
+    </div>
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/ol@v10.6.0/dist/ol.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/shpjs@latest/dist/shp.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@7/turf.min.js"></script>
+
+    <script src="helper_functions.js"></script>
+
+
+
+
+    <script>
+
+
+        let selectedFeature = null;
+        let draw;
+
+
+
+        const source = new ol.source.Vector({ wrapX: false });
+        const vector = new ol.layer.Vector({
+            source: source,
+            style: new ol.style.Style({
+                fill: new ol.style.Fill({ color: 'rgba(255, 255, 255, 0.4)' }),
+                stroke: new ol.style.Stroke({ color: '#3399CC', width: 2 }),
+                image: new ol.style.Circle({ radius: 7, fill: new ol.style.Fill({ color: '#3399CC' }) })
+            })
+        });
+
+        var geoJSONFormat = new ol.format.GeoJSON({});
+
+        function toggleMapLoader(show) {
+            const map_loader = document.getElementById('page_loader');
+            if (map_loader) {
+                map_loader.style.display = show ? 'flex' : 'none';  // Show loader if true, hide if false
+            }
+        }
+
+
+
+
+        var streetMaplayer = new ol.layer.Tile({
+            source: new ol.source.OSM({
+                url: 'https://mt{0-3}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+                attributions: ['&copy; <a href="https://www.google.com/maps">Google</a>']
+            }),
+            visible: false
+        })
+
+
+        var sentinellayer = new ol.layer.Tile({
+            source: new ol.source.TileWMS({
+                url: 'https://tiles.maps.eox.at/wms?',
+                params: { 'LAYERS': 's2cloudless_3857' },
+                version: '1.1.1',
+                format: 'image/png',
+                ratio: 1,
+                serverType: 'mapserver',
+                attributions: [
+                    'Sentinel-2 cloudless - <a href="https://s2maps.eu" target="_blank">s2maps.eu</a> by <a href="https://eox.at/" target="_blank">EOX IT Services GmbH</a>'
+                ]
+            }),
+            visible: false
+        });
+
+        var osmLayer = new ol.layer.Tile({
+            source: new ol.source.OSM(),
+            visible: true
+        });
+
+
+        const map = new ol.Map({
+            target: 'map',
+            layers: [osmLayer, streetMaplayer, sentinellayer, vector],
+            view: new ol.View({ center: ol.proj.fromLonLat([0, 20]), zoom: 2 })
+        });
+
+
+
+
+
+        const container = document.getElementById('popup');
+        // const closer = document.getElementById('popup-closer');
+        const overlay = new ol.Overlay({
+            element: container,
+            autoPan: { animation: { duration: 250 } }
+        });
+        map.addOverlay(overlay);
+
+        // closer.onclick = function () {
+        //     overlay.setPosition(undefined);
+        //     closer.blur();
+        //     return false;
+        // };
+
+        // Tab switching
+        document.getElementById('tab-properties').onclick = () => {
+            switchTab('properties');
+        };
+        document.getElementById('tab-info').onclick = () => {
+            switchTab('info');
+        };
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+
+            document.getElementById(`tab-${tab}`).classList.add('active');
+            document.getElementById(`tab-content-${tab}`).style.display = 'block';
+        }
+
+        // On map click
+        map.on('singleclick', function (evt) {
+            if (draw) return; 
+
+            const feature = map.forEachFeatureAtPixel(evt.pixel, f => f);
+            if (!feature) {
+                overlay.setPosition(undefined);
+                return;
+            }
+
+            selectedFeature = feature;
+            const props = { ...feature.getProperties() };
+            delete props.geometry;
+
+            // Populate properties tab
+            const table = document.getElementById('attr-table');
+            table.innerHTML = '';
+            Object.entries(props).forEach(([key, value]) => {
+                table.innerHTML += `
+            <tr>
+                <td><input type="text" value="${key}" /></td>
+                <td><input type="text" value="${value}" /></td>
+            </tr>
+        `;
+            });
+
+
+            // Populate info tab
+            const geom = feature.getGeometry();
+            console.log("geom", geom.getType())
+            let infoHTML = '';
+            const geojson = new ol.format.GeoJSON().writeFeatureObject(feature, { featureProjection: map.getView().getProjection() });
+
+            const type = geom.getType();
+
+            if (type === 'Point' || type === 'MultiPoint') {
+                const coords = turf.getCoord(geojson);
+                infoHTML += `<b>Latitude:</b> ${coords[1].toFixed(6)}<br>`;
+                infoHTML += `<b>Longitude:</b> ${coords[0].toFixed(6)}`;
+            }
+            else if (type === 'LineString' || type === 'MultiLineString') {
+                const length = turf.length(geojson, { units: 'kilometers' });
+                infoHTML += `<b>Length:</b> ${length.toFixed(3)} km`;
+            }
+            else if (type === 'Polygon' || type === 'MultiPolygon') {
+                const area = turf.area(geojson) / 1e6;
+                const perimeter = turf.length(turf.polygonToLine(geojson), { units: 'kilometers' });
+                infoHTML += `<b>Area:</b> ${area.toFixed(3)} km²<br>`;
+                infoHTML += `<b>Perimeter:</b> ${perimeter.toFixed(3)} km`;
+            }
+            else if (type === 'Circle') {
+                const polygon = ol.geom.Polygon.fromCircle(geom, 64);
+                const geojsonCircle = new ol.format.GeoJSON().writeGeometryObject(polygon);
+                const area = turf.area(geojsonCircle) / 1e6;
+                const perimeter = turf.length(turf.polygonToLine(geojsonCircle), { units: 'kilometers' });
+                infoHTML += `<b>Area:</b> ${area.toFixed(3)} km²<br>`;
+                infoHTML += `<b>Perimeter:</b> ${perimeter.toFixed(3)} km`;
+            }
+
+
+            document.getElementById('info-content').innerHTML = infoHTML;
+
+            overlay.setPosition(evt.coordinate);
+            switchTab('properties'); // Default to properties tab
+        });
+
+        // Add row
+        document.getElementById('add-row').onclick = function (e) {
+            e.preventDefault();
+            const table = document.getElementById('attr-table');
+            table.innerHTML += `
+        <tr>
+            <td><input type="text" placeholder="Property name" /></td>
+            <td><input type="text" placeholder="Value" /></td>
+        </tr>
+    `;
+        };
+
+        // Save changes
+        document.getElementById('save-attr').onclick = function () {
+            if (!selectedFeature) return;
+            const rows = document.querySelectorAll('#attr-table tr');
+            let newProps = {};
+            rows.forEach(row => {
+                const inputs = row.querySelectorAll('input');
+                const key = inputs[0].value.trim();
+                const val = inputs[1].value.trim();
+                if (key) newProps[key] = val;
+            });
+            selectedFeature.setProperties(newProps);
+            overlay.setPosition(undefined);
+            updateGeoJSON();
+        };
+
+        // Cancel
+        document.getElementById('cancel-attr').onclick = function () {
+            overlay.setPosition(undefined);
+        };
+
+        // Delete feature
+        document.getElementById('delete-feature').onclick = function () {
+            if (!selectedFeature) return;
+            source.removeFeature(selectedFeature);
+            selectedFeature = null;
+            overlay.setPosition(undefined);
+            updateGeoJSON();
+        };
+
+
+        document.getElementById('basemapSelect').addEventListener('change', function () {
+            streetMaplayer.setVisible(this.value === 'street');
+            sentinellayer.setVisible(this.value === 'sentinel');
+            osmLayer.setVisible(this.value === 'osm');
+        });
+
+
+
+        const scaleLineControl = new ol.control.ScaleLine({
+            units: 'metric', // can be 'degrees', 'imperial', 'nautical', 'metric', 'us'
+            bar: false,       // show as a scale bar
+            steps: 4,        // number of segments in the scale bar
+            text: true,      // show text labels
+            minWidth: 140    // minimum width in pixels
+        });
+
+        // Add it to the map
+        map.addControl(scaleLineControl);
+
+
+        //Show X,Y coordinates
+        const mousePositionControl = new ol.control.MousePosition({
+            coordinateFormat: ol.coordinate.createStringXY(4), // 4 decimal places
+            projection: 'EPSG:4326',
+            target: document.getElementById('coordinates'),
+            undefinedHTML: '&nbsp;'
+        });
+        map.addControl(mousePositionControl);
+
+
+
+        // Function to update URL hash with current view
+        function updateUrlHash() {
+            const view = map.getView();
+            const zoom = view.getZoom().toFixed(2);
+            const center = ol.proj.toLonLat(view.getCenter());
+            const lat = center[1].toFixed(3);
+            const lon = center[0].toFixed(3);
+            location.hash = `map=${zoom}/${lat}/${lon}`;
+        }
+
+        // Listen for map movement and update hash
+        map.on('moveend', updateUrlHash);
+
+        // On load, check if URL hash has map position
+        function restoreMapViewFromHash() {
+            if (location.hash.startsWith('#map=')) {
+                const parts = location.hash.replace('#map=', '').split('/');
+                if (parts.length === 3) {
+                    const zoom = parseFloat(parts[0]);
+                    const lat = parseFloat(parts[1]);
+                    const lon = parseFloat(parts[2]);
+                    map.getView().setCenter(ol.proj.fromLonLat([lon, lat]));
+                    map.getView().setZoom(zoom);
+                }
+            }
+        }
+
+        // Run this on page load
+        restoreMapViewFromHash();
+
+
+
+
+
+
+
+        function addInteraction(type) {
+            if (draw) map.removeInteraction(draw);
+            if (!type) return;
+
+            let geometryFunction = null;
+            let drawType = type;
+
+            if (type === 'Box') {
+                drawType = 'Circle';
+                geometryFunction = ol.interaction.Draw.createBox();
+            }
+
+            draw = new ol.interaction.Draw({
+                source: source,
+                type: drawType,
+                geometryFunction: geometryFunction
+            });
+            map.addInteraction(draw);
+
+            draw.once('drawend', () => {
+                map.removeInteraction(draw);
+                draw = null;
+
+                // Remove active highlight from all buttons
+                document.querySelectorAll('#sidebar button').forEach(b => b.classList.remove('active'));
+            });
+
+
+        }
+
+        function updateGeoJSON() {
+            const format = new ol.format.GeoJSON();
+            const features = source.getFeatures().map(f => {
+                let geom = f.getGeometry();
+                if (geom.getType() === 'Circle') {
+                    // Convert circle to polygon with given segments
+                    geom = ol.geom.Polygon.fromCircle(geom, 64); // 64 = smoothness
+                    const newFeature = f.clone();
+                    newFeature.setGeometry(geom);
+                    return newFeature;
+                }
+                return f;
+            });
+
+            const json = format.writeFeatures(features, { featureProjection: map.getView().getProjection() });
+            document.getElementById('geojson-output').textContent = JSON.stringify(JSON.parse(json), null, 2);
+        }
+
+
+        // Sidebar buttons
+        document.querySelectorAll('#sidebar button[data-type]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('#sidebar button').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                addInteraction(btn.getAttribute('data-type'));
+            });
+        });
+
+        // Undo
+        document.getElementById('undo').addEventListener('click', () => {
+            const features = source.getFeatures();
+            if (features.length) {
+                source.removeFeature(features[features.length - 1]);
+                updateGeoJSON();
+            }
+        });
+
+        // Clear
+        document.getElementById('clear').addEventListener('click', () => {
+            source.clear();
+            updateGeoJSON();
+        });
+
+        // Copy JSON
+        document.getElementById('copy-json').addEventListener('click', () => {
+            const features = source.getFeatures();
+            if (!features.length) {
+                alert('No GeoJSON data available to copy.');
+                return;
+            }
+
+            const text = document.getElementById('geojson-output').textContent.trim();
+            if (!text || text.startsWith('Draw something')) {
+                alert('No valid GeoJSON data to copy.');
+                return;
+            }
+
+
+            navigator.clipboard.writeText(text);
+            alert("Copied!")
+        });
+
+        // Download JSON
+        document.getElementById('download-json').addEventListener('click', () => {
+
+            const features = source.getFeatures();
+            if (!features.length) {
+                alert('No GeoJSON data available to download.');
+                return;
+            }
+
+            const text = document.getElementById('geojson-output').textContent.trim();
+            if (!text || text.startsWith('Draw something')) {
+                alert('No valid GeoJSON data to download.');
+                return;
+            }
+
+
+            const blob = new Blob([text], { type: 'application/geo+json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'features.geojson';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+
+
+
+        // Modify interaction
+        // const modify = new ol.interaction.Modify({ source: source });
+        // map.addInteraction(modify);
+        // modify.on('modifyend', updateGeoJSON);
+
+
+
+
+        // Update JSON on feature changes
+        source.on('addfeature', updateGeoJSON);
+        source.on('removefeature', updateGeoJSON);
+
+
+
+
+
+        function addFeaturesToMap(features) {
+
+
+            source.addFeatures(features);
+
+
+            // Fit the map view to these features, if any
+            if (features && features.length > 0) {
+                const extent = source.getExtent();
+                map.getView().fit(extent, { padding: [30, 30, 30, 30], maxZoom: 18 });
+            }
+        }
+
+        // Import GeoJSON
+
+        const fileInput = document.getElementById('fileInput');
+        document.getElementById('import').addEventListener('click', function () {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', async function (evt) {
+            const uploaded_file = evt.target.files[0];
+            if (!uploaded_file) return;
+
+            if (uploaded_file.size > 5 * 1024 * 1024) {
+                alert('File size exceeds 5 MB. Please upload a smaller file.');
+                fileInput.value = ''; // Reset input
+                return;
+            }
+
+
+            toggleMapLoader(true);
+
+            const fileName = uploaded_file.name.toLowerCase();
+
+            try {
+                if (fileName.endsWith('.geojson') || fileName.endsWith('.json')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        parseGeoJSON(e.target.result);
+                        toggleMapLoader(false);
+                    };
+                    reader.readAsText(uploaded_file);
+                }
+                else if (fileName.endsWith('.kml')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        parseKML(e.target.result);
+                        toggleMapLoader(false);
+                    };
+                    reader.readAsText(uploaded_file);
+                }
+                else if (fileName.endsWith('.kmz')) {
+                    await parseKMZ(uploaded_file);
+                    toggleMapLoader(false);
+                }
+                else if (fileName.endsWith('.zip')) {
+                    await parseShapefile(uploaded_file);
+                    toggleMapLoader(false);
+                }
+                else {
+                    alert('Unsupported file format. Please upload .geojson, .kml, .kmz, or .zip (Shapefile).');
+                    toggleMapLoader(false);
+                }
+            } catch (error) {
+                console.error('Error processing file:', error);
+                alert('An error occurred while processing the file.');
+                toggleMapLoader(false);
+            }
+
+            // Reset file input so the same file can be uploaded again if needed
+            fileInput.value = '';
+        });
+
+
+
+
+
+        // Set your default center & zoom here
+        const defaultCenter = ol.proj.fromLonLat([0, 20.000]); // India center
+        const defaultZoom = 2;
+
+        document.getElementById('refresh-extent').addEventListener('click', () => {
+            source.clear(); // clear all features
+            map.getView().setCenter(defaultCenter);
+            map.getView().setZoom(defaultZoom);
+        });
+
+
+    </script>
+</body>
+
+</html>
