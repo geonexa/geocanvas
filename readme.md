@@ -2,6 +2,7 @@
 A fast, lightweight tool to view, draw, and convert geospatial data — right in your browser.
 
 GeoCanvas is a simple and powerful web-based GIS viewer that lets you upload, visualize, edit, and export spatial data instantly. No installation, no backend — everything runs on the client side.
+
 ----
 
 ## Features
