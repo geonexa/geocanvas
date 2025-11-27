@@ -46,13 +46,25 @@
         <h1>GeoCanvas</h1>
         <div class="nav-buttons">
             <!-- <button id="import">Import</button> -->
+            <button id="help-btn" class="btn btn-outline-light btn-sm">
+                <i class="fa-solid fa-circle-question"></i> Help
+            </button>
+
+
+            <a href="https://github.com/amanchry" target="_blank">
+                <button class="btn btn-outline-light btn-sm">
+                    <i class="fa-brands fa-github"></i> By aman chaudhary
+                </button>
+            </a>
+
+
+
+
         </div>
 
-        <span class="dev">
-    <a href="https://github.com/amanchry" target="_blank">
-        <i class="fa-brands fa-github"></i> By GeoNexa
-    </a>
-</span>
+
+
+
 
 
 
@@ -174,6 +186,65 @@
         </div>
 
 
+        <!-- HELP MODAL -->
+        <div class="modal fade" id="helpModal" tabindex="-1" aria-labelledby="helpModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content">
+
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title" id="helpModalLabel">
+                            <i class="fa-solid fa-circle-info"></i> Welcome to GeoCanvas
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body" style="font-size:15px; line-height:1.6;">
+                        <p>
+                            GeoCanvas is a fast, free, and lightweight tool for drawing, uploading, and
+                            analyzing spatial data directly in your browser. No account required — everything runs
+                            locally.
+                        </p>
+
+                        <hr>
+
+
+                        <h5><b>File Support</b></h5>
+                        <p>You can upload and visualize the following spatial formats:</p>
+                        <ul>
+                            <li>📎 <b>GeoJSON / JSON</b></li>
+                            <li>📎 <b>KML / KMZ</b></li>
+                            <li>📎 <b>Shapefiles (.zip)</b> with all component files included</li>
+                        </ul>
+
+
+                        <hr>
+
+
+
+                        <h5><b>Feature Inspector</b></h5>
+                        <ul>
+                            <li>View feature properties</li>
+                            <li>Edit, delete, or add new attribute fields</li>
+                            <li>View geometry information (area, perimeter, length)</li>
+                        </ul>
+
+                        <hr>
+
+
+
+                    </div>
+
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+
+
+
     </div>
 
 
@@ -192,6 +263,14 @@
 
 
     <script>
+
+
+        document.getElementById("help-btn").addEventListener("click", () => {
+            const modal = new bootstrap.Modal(document.getElementById("helpModal"));
+            modal.show();
+        });
+
+
 
 
         let selectedFeature = null;
