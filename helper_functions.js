@@ -23,7 +23,7 @@
 
     } catch (err) {
       console.error('Error parsing GeoJSON:', err);
-      alert('Failed to parse GeoJSON file.');
+      if (typeof showAlert === 'function') showAlert('Failed to parse GeoJSON file.', 'error'); else alert('Failed to parse GeoJSON file.');
     }
   }
 
@@ -51,7 +51,7 @@
 
     } catch (err) {
       console.error('Error parsing KML:', err);
-      alert('Failed to parse KML file.');
+      if (typeof showAlert === 'function') showAlert('Failed to parse KML file.', 'error'); else alert('Failed to parse KML file.');
     }
   }
 
@@ -67,14 +67,14 @@
         n.toLowerCase().endsWith('.kml')
       );
       if (!kmlFileName) {
-        alert('No .kml found inside the KMZ.');
+        if (typeof showAlert === 'function') showAlert('No .kml found inside the KMZ.', 'error'); else alert('No .kml found inside the KMZ.');
         return;
       }
       const kmlText = await zip.file(kmlFileName).async('string');
       parseKML(kmlText);
     } catch (err) {
       console.error('Error parsing KMZ:', err);
-      alert('Failed to parse KMZ file.');
+      if (typeof showAlert === 'function') showAlert('Failed to parse KMZ file.', 'error'); else alert('Failed to parse KMZ file.');
     }
   }
 
@@ -106,14 +106,14 @@
         }
       }
       if (!out) {
-        alert('No valid FeatureCollection found in Shapefile.');
+        if (typeof showAlert === 'function') showAlert('No valid FeatureCollection found in Shapefile.', 'error'); else alert('No valid FeatureCollection found in Shapefile.');
         return;
       }
       // Now parse as if it's GeoJSON
       parseGeoJSON(out);
     } catch (err) {
       console.error('Error parsing Shapefile:', err);
-      alert('Failed to parse Shapefile ZIP. Make sure .shp, .dbf, .prj, etc. are included.');
+      if (typeof showAlert === 'function') showAlert('Failed to parse Shapefile ZIP. Make sure .shp, .dbf, .prj, etc. are included.', 'error'); else alert('Failed to parse Shapefile ZIP. Make sure .shp, .dbf, .prj, etc. are included.');
     }
   }
 

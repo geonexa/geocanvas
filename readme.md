@@ -11,3 +11,12 @@ GeoCanvas is a simple and powerful web-based GIS viewer that lets you upload, vi
 - Edit and modify feature attributes
 - View geometry properties — area, perimeter, length, coordinates
 - Search global locations with autocomplete
+
+## License
+GeoCanvas is open source software licensed under the [MIT License](LICENSE).
+
+
+
+
+
+now i want to implemet multi ces support user can decide in which crs they wants to export the result add popular crs like 4326, 3857 etc

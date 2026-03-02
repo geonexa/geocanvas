@@ -4,12 +4,12 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>GeoCanvas — A quick, simple tool for creating, and viewing spatial data.</title>
+    <title>GeoCanvas - A quick, simple tool for creating, and viewing spatial data.</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <link rel="icon" type="image/png" sizes="16x16" href="favicon.png">
 
-    <meta name="title" content="GeoCanvas — Create, View, and Convert Spatial Data Instantly">
+    <meta name="title" content="GeoCanvas - Create, View, and Convert Spatial Data Instantly">
     <meta name="description"
         content="GeoCanvas is a fast, simple, and free online tool to upload, view, and convert spatial data. Visualize and work with geospatial data instantly in your browser.">
 
@@ -23,7 +23,7 @@
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <!-- <meta property="og:url" content="https://yourwebsite.com/"> -->
-    <meta property="og:title" content="GeoCanvas — Create, View, and Convert Spatial Data Instantly">
+    <meta property="og:title" content="GeoCanvas - Create, View, and Convert Spatial Data Instantly">
     <meta property="og:description"
         content="Upload, view, and convert spatial data formats like GeoJSON, Shapefile, KML, and KMZ in your browser. Fast, free, and easy to use.">
     <!-- <meta property="og:image" content="https://yourwebsite.com/preview-image.png"> -->
@@ -51,11 +51,11 @@
             </button>
 
 
-            <a href="https://github.com/amanchry" target="_blank">
+            <!-- <a href="https://github.com/amanchry" target="_blank">
                 <button class="btn btn-outline-light btn-sm">
                     <i class="fa-brands fa-github"></i> By aman chaudhary
                 </button>
-            </a>
+            </a> -->
 
 
 
@@ -83,14 +83,14 @@
 
 
         <div id="sidebar">
-            <button data-type="Point" title="Draw Point"> <i class="fg-poi"></i> </button>
-            <button data-type="LineString" title="Draw Line"> <i class="fg-polyline-pt"></i></button>
-            <button data-type="Polygon" title="Draw Polygon"> <i class="fg-polygon-pt"></i></button>
-            <button data-type="Circle" title="Draw Circle"> <i class="fg-circle-o"></i></button>
-            <button data-type="Box" title="Draw Rectangle"> <i class="fg-rectangle-pt"></i></button>
-            <button id="undo" title="Undo"> <i class="fa-solid fa-rotate-left"></i></button>
-            <button id="clear" title="Clear"> <i class="fa-solid fa-trash"></i></button>
-            <button id="import" title="Import GeoJSON"> <i class="fa-solid  fa-file-import"></i></button>
+            <button data-type="Point" data-tooltip="Draw Point"><i class="fg-poi"></i></button>
+            <button data-type="LineString" data-tooltip="Draw Line"><i class="fg-polyline-pt"></i></button>
+            <button data-type="Polygon" data-tooltip="Draw Polygon"><i class="fg-polygon-pt"></i></button>
+            <button data-type="Circle" data-tooltip="Draw Circle"><i class="fg-circle-o"></i></button>
+            <button data-type="Box" data-tooltip="Draw Rectangle"><i class="fg-rectangle-pt"></i></button>
+            <button id="undo" data-tooltip="Undo"><i class="fa-solid fa-rotate-left"></i></button>
+            <button id="clear" data-tooltip="Clear"><i class="fa-solid fa-trash"></i></button>
+            <button id="import" data-tooltip="Import file (GeoJSON, KML, KMZ, Shapefile)"><i class="fa-solid fa-file-import"></i></button>
             <!-- <input id="fileInput" type="file" accept="application/geo+json,application/json" style="display:none" /> -->
             <input id="fileInput" type="file" accept=".geojson,.json,.kml,.kmz,.zip" style="display:none" />
 
@@ -102,12 +102,22 @@
                     <div id="coordinates">
                     </div>
 
-                    <div class="basemap-control">
-                        <select id="basemapSelect">
-                            <option value="osm" selected>OpenStreetMap</option>
-                            <option value="street">Google Street Map</option>
-                            <option value="sentinel">Sentinel-2 Cloudless</option>
-                        </select>
+                    <div class="basemap-control" id="basemapControl">
+                        <button type="button" class="basemap-trigger" id="basemapTrigger" aria-expanded="false" aria-haspopup="true" title="Change basemap">
+                            <i class="fa-solid fa-layer-group basemap-trigger-icon"></i>
+                            <span class="basemap-trigger-preview basemap-preview-osm" id="basemapTriggerPreview"><img src="https://tile.openstreetmap.org/5/21/11.png" alt="" /></span>
+                        </button>
+                        <div class="basemap-options" id="basemapOptions" role="listbox">
+                            <button type="button" class="basemap-option selected" data-basemap="osm" role="option" aria-selected="true">
+                                <span class="basemap-option-thumb"><img src="https://tile.openstreetmap.org/5/21/11.png" alt="OpenStreetMap" /></span>
+                            </button>
+                            <button type="button" class="basemap-option" data-basemap="street" role="option" aria-selected="false">
+                                <span class="basemap-option-thumb"><img src="https://mt3.google.com/vt/lyrs=s&amp;x=21&amp;y=11&amp;z=5" alt="Google Street" /></span>
+                            </button>
+                            <button type="button" class="basemap-option" data-basemap="sentinel" role="option" aria-selected="false">
+                                <span class="basemap-option-thumb"><img src="https://tiles.maps.eox.at/wms?REQUEST=GetMap&amp;SERVICE=WMS&amp;VERSION=1.3.0&amp;FORMAT=image%2Fpng&amp;STYLES=&amp;TRANSPARENT=TRUE&amp;LAYERS=s2cloudless_3857&amp;MAP_RESOLUTION=180&amp;WIDTH=512&amp;HEIGHT=512&amp;CRS=EPSG%3A3857&amp;BBOX=8140237.764258131%2C3130860.6785608195%2C8766409.899970295%2C3757032.8142729835" alt="Sentinel-2 Cloudless" /></span>
+                            </button>
+                        </div>
                     </div>
                     <div id="search-container">
                         <div class="search-bar">
@@ -173,9 +183,25 @@
             </div>
             <div class="col-md-4 pl-0">
                 <div id="panel">
+                    <div class="export-crs-row">
+                        <label for="exportCrs" class="export-crs-label">Export CRS</label>
+                        <select id="exportCrs" class="export-crs-select" title="Coordinate reference system for export">
+                            <option value="EPSG:4326">WGS 84 (EPSG:4326)</option>
+                            <option value="EPSG:3857">Web Mercator (EPSG:3857)</option>
+                        </select>
+                    </div>
                     <div class="panel-buttons">
                         <button id="copy-json">Copy</button>
-                        <button id="download-json">Download</button>
+                        <div class="download-dropdown" id="downloadDropdown">
+                            <button type="button" class="download-trigger" id="downloadTrigger" aria-expanded="false" aria-haspopup="true">
+                                Download <i class="fa-solid fa-chevron-down download-chevron"></i>
+                            </button>
+                            <div class="download-menu" id="downloadMenu">
+                                <button type="button" class="download-option" data-format="geojson"><i class="fa-solid fa-file-code"></i> GeoJSON</button>
+                                <button type="button" class="download-option" data-format="wkt"><i class="fa-solid fa-file-lines"></i> WKT</button>
+                                <!-- <button type="button" class="download-option" data-format="shp"><i class="fa-solid fa-file-zipper"></i> Shapefile (SHP)</button> -->
+                            </div>
+                        </div>
                         <button id="refresh-extent">New</button>
                     </div>
                     <div id="geojson-output">Draw something to see GeoJSON...</div>
@@ -201,7 +227,7 @@
                     <div class="modal-body" style="font-size:15px; line-height:1.6;">
                         <p>
                             GeoCanvas is a fast, free, and lightweight tool for drawing, uploading, and
-                            analyzing spatial data directly in your browser. No account required — everything runs
+                            analyzing spatial data directly in your browser. No account required - everything runs
                             locally.
                         </p>
 
@@ -211,9 +237,9 @@
                         <h5><b>File Support</b></h5>
                         <p>You can upload and visualize the following spatial formats:</p>
                         <ul>
-                            <li>📎 <b>GeoJSON / JSON</b></li>
-                            <li>📎 <b>KML / KMZ</b></li>
-                            <li>📎 <b>Shapefiles (.zip)</b> with all component files included</li>
+                            <li><b>GeoJSON / JSON</b></li>
+                            <li><b>KML / KMZ</b></li>
+                            <li><b>Shapefiles (.zip)</b> with all component files included</li>
                         </ul>
 
 
@@ -242,16 +268,18 @@
             </div>
         </div>
 
-
-
+        <!-- Custom toast alerts container -->
+        <div id="toast-container" class="toast-container" aria-live="polite"></div>
 
     </div>
 
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/ol@v10.6.0/dist/ol.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/proj4@2.9.2/dist/proj4.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/shpjs@latest/dist/shp.min.js"></script>
+    <script src="https://unpkg.com/shp-write@latest/shpwrite.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@turf/turf@7/turf.min.js"></script>
 
     <link rel="stylesheet" href="https://cdn.rawgit.com/Viglino/ol-ext/master/dist/ol-ext.min.css" />
@@ -263,7 +291,37 @@
 
 
     <script>
+        // Custom toast alert (must be global for helper_functions.js)
+        function showAlert(message, type) {
+            type = type || 'info';
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', info: 'fa-info-circle' };
+            const toast = document.createElement('div');
+            toast.className = 'geo-toast geo-toast-' + type;
+            const iconEl = document.createElement('i');
+            iconEl.className = 'fa-solid geo-toast-icon ' + icons[type];
+            const msgEl = document.createElement('span');
+            msgEl.className = 'geo-toast-message';
+            msgEl.textContent = message;
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'geo-toast-close';
+            closeBtn.setAttribute('aria-label', 'Close');
+            closeBtn.innerHTML = '<i class="fa-solid fa-times"></i>';
+            toast.appendChild(iconEl);
+            toast.appendChild(msgEl);
+            toast.appendChild(closeBtn);
+            container.appendChild(toast);
+            requestAnimationFrame(() => toast.classList.add('geo-toast-show'));
 
+            const dismiss = () => {
+                toast.classList.remove('geo-toast-show');
+                setTimeout(() => toast.remove(), 300);
+            };
+            closeBtn.addEventListener('click', dismiss);
+            setTimeout(dismiss, 5000);
+        }
+        window.showAlert = showAlert;
 
         document.getElementById("help-btn").addEventListener("click", () => {
             const modal = new bootstrap.Modal(document.getElementById("helpModal"));
@@ -289,6 +347,33 @@
         });
 
         var geoJSONFormat = new ol.format.GeoJSON({});
+
+        // Register additional CRS with proj4 for export
+        if (typeof proj4 !== 'undefined' && typeof ol !== 'undefined' && ol.proj && ol.proj.proj4) {
+            proj4.defs('EPSG:4269', '+proj=longlat +datum=NAD83 +no_defs');
+            proj4.defs('EPSG:27700', '+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +datum=OSGB36 +units=m +no_defs');
+            proj4.defs('EPSG:32632', '+proj=utm +zone=32 +datum=WGS84 +units=m +no_defs');
+            proj4.defs('EPSG:32732', '+proj=utm +zone=32 +south +datum=WGS84 +units=m +no_defs');
+            ol.proj.proj4.register(proj4);
+        }
+
+        function getExportCrs() {
+            const sel = document.getElementById('exportCrs');
+            return sel ? sel.value : 'EPSG:4326';
+        }
+
+        // Add explicit CRS to GeoJSON so GIS software (QGIS, ArcGIS, etc.) can read it
+        function addCrsToGeoJSON(geojsonObj, epsgCode) {
+            if (!geojsonObj || geojsonObj.type !== 'FeatureCollection') return geojsonObj;
+            const code = (epsgCode || 'EPSG:4326').replace('EPSG:', '');
+            geojsonObj.crs = {
+                type: 'name',
+                properties: {
+                    name: 'urn:ogc:def:crs:EPSG::' + code
+                }
+            };
+            return geojsonObj;
+        }
 
         function toggleMapLoader(show) {
             const map_loader = document.getElementById('page_loader');
@@ -487,11 +572,48 @@
         };
 
 
-        document.getElementById('basemapSelect').addEventListener('change', function () {
-            streetMaplayer.setVisible(this.value === 'street');
-            sentinellayer.setVisible(this.value === 'sentinel');
-            osmLayer.setVisible(this.value === 'osm');
+        // Basemap picker (bottom-left)
+        const basemapControl = document.getElementById('basemapControl');
+        const basemapTrigger = document.getElementById('basemapTrigger');
+        const basemapTriggerPreview = document.getElementById('basemapTriggerPreview');
+        const basemapOptions = document.getElementById('basemapOptions');
+
+        var basemapThumbUrls = {
+            osm: 'https://tile.openstreetmap.org/5/21/11.png',
+            street: 'https://mt3.google.com/vt/lyrs=s&x=21&y=11&z=5',
+            sentinel: 'https://tiles.maps.eox.at/wms?REQUEST=GetMap&SERVICE=WMS&VERSION=1.3.0&FORMAT=image%2Fpng&STYLES=&TRANSPARENT=TRUE&LAYERS=s2cloudless_3857&MAP_RESOLUTION=180&WIDTH=512&HEIGHT=512&CRS=EPSG%3A3857&BBOX=8140237.764258131%2C3130860.6785608195%2C8766409.899970295%2C3757032.8142729835'
+        };
+        function setBasemap(value) {
+            streetMaplayer.setVisible(value === 'street');
+            sentinellayer.setVisible(value === 'sentinel');
+            osmLayer.setVisible(value === 'osm');
+            basemapTriggerPreview.className = 'basemap-trigger-preview basemap-preview-' + value;
+            basemapTriggerPreview.innerHTML = '<img src="' + basemapThumbUrls[value] + '" alt="" />';
+            basemapOptions.querySelectorAll('.basemap-option').forEach(opt => {
+                opt.classList.toggle('selected', opt.getAttribute('data-basemap') === value);
+                opt.setAttribute('aria-selected', opt.getAttribute('data-basemap') === value);
+            });
+        }
+
+        basemapTrigger.addEventListener('click', function (e) {
+            e.stopPropagation();
+            basemapControl.classList.toggle('open');
+            basemapTrigger.setAttribute('aria-expanded', basemapControl.classList.contains('open'));
         });
+
+        basemapOptions.querySelectorAll('.basemap-option').forEach(opt => {
+            opt.addEventListener('click', function () {
+                setBasemap(this.getAttribute('data-basemap'));
+                basemapControl.classList.remove('open');
+                basemapTrigger.setAttribute('aria-expanded', 'false');
+            });
+        });
+
+        document.addEventListener('click', function () {
+            basemapControl.classList.remove('open');
+            basemapTrigger.setAttribute('aria-expanded', 'false');
+        });
+        basemapControl.addEventListener('click', function (e) { e.stopPropagation(); });
 
 
 
@@ -585,21 +707,30 @@
         }
 
         function updateGeoJSON() {
+            const features = source.getFeatures();
+            const outputEl = document.getElementById('geojson-output');
+            if (!features.length) {
+                outputEl.textContent = 'Draw something to see GeoJSON...';
+                return;
+            }
+            const exportCrs = getExportCrs();
             const format = new ol.format.GeoJSON();
-            const features = source.getFeatures().map(f => {
+            const featuresForDisplay = features.map(f => {
                 let geom = f.getGeometry();
                 if (geom.getType() === 'Circle') {
-                    // Convert circle to polygon with given segments
-                    geom = ol.geom.Polygon.fromCircle(geom, 64); // 64 = smoothness
+                    geom = ol.geom.Polygon.fromCircle(geom, 64);
                     const newFeature = f.clone();
                     newFeature.setGeometry(geom);
                     return newFeature;
                 }
                 return f;
             });
-
-            const json = format.writeFeatures(features, { featureProjection: map.getView().getProjection() });
-            document.getElementById('geojson-output').textContent = JSON.stringify(JSON.parse(json), null, 2);
+            const json = format.writeFeatures(featuresForDisplay, {
+                dataProjection: exportCrs,
+                featureProjection: map.getView().getProjection()
+            });
+            const geojsonObj = addCrsToGeoJSON(JSON.parse(json), exportCrs);
+            outputEl.textContent = JSON.stringify(geojsonObj, null, 2);
         }
 
 
@@ -627,48 +758,153 @@
             updateGeoJSON();
         });
 
-        // Copy JSON
+        // When Export CRS changes, refresh the GeoJSON view and it will be used for download/copy
+        document.getElementById('exportCrs').addEventListener('change', updateGeoJSON);
+
+        // Copy JSON (uses selected Export CRS)
         document.getElementById('copy-json').addEventListener('click', () => {
-            const features = source.getFeatures();
+            const features = getFeaturesForExport();
             if (!features.length) {
-                alert('No GeoJSON data available to copy.');
+                showAlert('No GeoJSON data available to copy.', 'info');
                 return;
             }
-
-            const text = document.getElementById('geojson-output').textContent.trim();
-            if (!text || text.startsWith('Draw something')) {
-                alert('No valid GeoJSON data to copy.');
-                return;
-            }
-
-
+            const exportCrs = getExportCrs();
+            const format = new ol.format.GeoJSON();
+            const json = format.writeFeatures(features, {
+                dataProjection: exportCrs,
+                featureProjection: map.getView().getProjection()
+            });
+            const geojsonObj = addCrsToGeoJSON(JSON.parse(json), exportCrs);
+            const text = JSON.stringify(geojsonObj, null, 2);
             navigator.clipboard.writeText(text);
-            alert("Copied!")
+            showAlert('Copied to clipboard (' + exportCrs + ').', 'success');
         });
 
-        // Download JSON
-        document.getElementById('download-json').addEventListener('click', () => {
+        // Helper: get features with circles converted to polygons (for export)
+        function getFeaturesForExport() {
+            return source.getFeatures().map(f => {
+                let geom = f.getGeometry();
+                if (geom.getType() === 'Circle') {
+                    geom = ol.geom.Polygon.fromCircle(geom, 64);
+                    const clone = f.clone();
+                    clone.setGeometry(geom);
+                    return clone;
+                }
+                return f;
+            });
+        }
 
-            const features = source.getFeatures();
+        // Download dropdown
+        const downloadDropdown = document.getElementById('downloadDropdown');
+        const downloadTrigger = document.getElementById('downloadTrigger');
+        const downloadMenu = document.getElementById('downloadMenu');
+
+        downloadTrigger.addEventListener('click', function (e) {
+            e.stopPropagation();
+            downloadDropdown.classList.toggle('open');
+            downloadTrigger.setAttribute('aria-expanded', downloadDropdown.classList.contains('open'));
+        });
+        document.addEventListener('click', () => {
+            downloadDropdown.classList.remove('open');
+            downloadTrigger.setAttribute('aria-expanded', 'false');
+        });
+        downloadDropdown.addEventListener('click', (e) => e.stopPropagation());
+
+        function downloadGeoJSON() {
+            const features = getFeaturesForExport();
             if (!features.length) {
-                alert('No GeoJSON data available to download.');
+                showAlert('No data available to download.', 'info');
                 return;
             }
-
-            const text = document.getElementById('geojson-output').textContent.trim();
-            if (!text || text.startsWith('Draw something')) {
-                alert('No valid GeoJSON data to download.');
-                return;
-            }
-
-
-            const blob = new Blob([text], { type: 'application/geo+json' });
+            const exportCrs = getExportCrs();
+            const format = new ol.format.GeoJSON();
+            const json = format.writeFeatures(features, {
+                dataProjection: exportCrs,
+                featureProjection: map.getView().getProjection()
+            });
+            const geojsonObj = addCrsToGeoJSON(JSON.parse(json), exportCrs);
+            const jsonWithCrs = JSON.stringify(geojsonObj, null, 2);
+            const blob = new Blob([jsonWithCrs], { type: 'application/geo+json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
             a.download = 'features.geojson';
             a.click();
             URL.revokeObjectURL(url);
+            showAlert('GeoJSON downloaded (' + exportCrs + ').', 'success');
+        }
+
+        function downloadWKT() {
+            const features = getFeaturesForExport();
+            if (!features.length) {
+                showAlert('No data available to download.', 'info');
+                return;
+            }
+            const exportCrs = getExportCrs();
+            const wktFormat = new ol.format.WKT();
+            const viewProj = map.getView().getProjection();
+            const wktParts = [];
+            features.forEach(f => {
+                const geom = f.getGeometry().clone();
+                geom.transform(viewProj, exportCrs);
+                wktParts.push(wktFormat.writeGeometry(geom));
+            });
+            const wkt = wktParts.length === 1 ? wktParts[0] : wktParts.join('\n');
+            const blob = new Blob([wkt], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'features.wkt';
+            a.click();
+            URL.revokeObjectURL(url);
+            showAlert('WKT downloaded (' + exportCrs + ').', 'success');
+        }
+
+        function downloadSHP() {
+            const features = getFeaturesForExport();
+            if (!features.length) {
+                showAlert('No data available to download.', 'info');
+                return;
+            }
+            try {
+                const exportCrs = getExportCrs();
+                const format = new ol.format.GeoJSON();
+                const geojson = format.writeFeaturesObject(features, {
+                    dataProjection: exportCrs,
+                    featureProjection: map.getView().getProjection()
+                });
+                const shpwrite = window.shpwrite || window.shpWrite;
+                if (shpwrite && typeof shpwrite.zip === 'function') {
+                    const zipBuffer = shpwrite.zip(geojson);
+                    const blob = new Blob([zipBuffer], { type: 'application/zip' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'features.zip';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    showAlert('Shapefile downloaded.', 'success');
+                } else if (shpwrite && typeof shpwrite.download === 'function') {
+                    shpwrite.download(geojson);
+                    showAlert('Shapefile downloaded.', 'success');
+                } else {
+                    showAlert('Shapefile export not available. Try GeoJSON or WKT.', 'error');
+                }
+            } catch (err) {
+                console.error('SHP export error:', err);
+                showAlert('Shapefile export failed. Try GeoJSON or WKT.', 'error');
+            }
+        }
+
+        downloadMenu.querySelectorAll('.download-option').forEach(opt => {
+            opt.addEventListener('click', function () {
+                const format = this.getAttribute('data-format');
+                downloadDropdown.classList.remove('open');
+                downloadTrigger.setAttribute('aria-expanded', 'false');
+                if (format === 'geojson') downloadGeoJSON();
+                else if (format === 'wkt') downloadWKT();
+                else if (format === 'shp') downloadSHP();
+            });
         });
 
 
@@ -714,8 +950,8 @@
             const uploaded_file = evt.target.files[0];
             if (!uploaded_file) return;
 
-            if (uploaded_file.size > 5 * 1024 * 1024) {
-                alert('File size exceeds 5 MB. Please upload a smaller file.');
+            if (uploaded_file.size > 20 * 1024 * 1024) {
+                showAlert('File size exceeds 20 MB. Please upload a smaller file.', 'error');
                 fileInput.value = ''; // Reset input
                 return;
             }
@@ -751,12 +987,12 @@
                     toggleMapLoader(false);
                 }
                 else {
-                    alert('Unsupported file format. Please upload .geojson, .kml, .kmz, or .zip (Shapefile).');
+                    showAlert('Unsupported file format. Please upload .geojson, .kml, .kmz, or .zip (Shapefile).', 'error');
                     toggleMapLoader(false);
                 }
             } catch (error) {
                 console.error('Error processing file:', error);
-                alert('An error occurred while processing the file.');
+                showAlert('An error occurred while processing the file.', 'error');
                 toggleMapLoader(false);
             }
 
